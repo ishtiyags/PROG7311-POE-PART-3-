@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TechMoveCRM.Models
+namespace TechMoveCRM.API.Models
 {
     public enum ContractStatus
     {
@@ -21,7 +21,7 @@ namespace TechMoveCRM.Models
         public int ClientId { get; set; }
 
         [ForeignKey("ClientId")]
-        public Client Client { get; set; }
+        public Client? Client { get; set; }
 
         [Required(ErrorMessage = "Start date is required.")]
         [DataType(DataType.Date)]
@@ -32,7 +32,7 @@ namespace TechMoveCRM.Models
         public DateTime EndDate { get; set; }
 
         [Required]
-        public ContractStatus? Status { get; set; } = ContractStatus.Draft;
+        public ContractStatus Status { get; set; } = ContractStatus.Draft;
 
         [Required(ErrorMessage = "Service level is required.")]
         [StringLength(100)]

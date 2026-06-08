@@ -1,179 +1,70 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Http;
-using TechMoveCRM.Models;
-using TechMoveCRM.Services;
-using TechMoveCRM.MVC.Services;
-using TechMoveCRM.ViewModels;
-using Microsoft.IdentityModel.Tokens;
+using TechMoveCRM.API.Models;
+using TechMoveCRM.API.Services;
 
-namespace TechMoveCRM.Controllers
+namespace TechMoveCRM.API.Controllers
 {
-    public class ContractsController : Controller
+   // [Authorize]
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ContractsController : ControllerBase
     {
-        private readonly ApiService _apiService;
-        private readonly IFileService _fileService;
+        private readonly IContractService _service;
 
-        public ContractsController(ApiService apiService, IFileService fileService)
+        public ContractsController(IContractService service)
         {
-            _apiService = apiService;
-            _fileService = fileService;
+            _service = service;
         }
 
-        // GET: Contracts (API)
-        public async Task<IActionResult> Index()
+        // GET: api/contracts
+        [HttpGet]
+        public async Task<IActionResult> Get()
         {
-            var contracts = await _apiService.GetContracts();
-            return View(contracts);
+            var contracts = await _service.GetAllContracts();
+
+            return Ok(contracts);
         }
 
-        // GET: Details
-        public async Task<IActionResult> Details(int id)
+        // GET: api/contracts/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
         {
-            var contract = (await _apiService.GetContracts())
-                .FirstOrDefault(c => c.ContractId == id);
+            var contract = await _service.GetContract(id);
 
-            if (contract == null) return NotFound();
-
-            return View(contract);
-        }
-
-        // GET: Search (done locally on API data)
-        public async Task<IActionResult> Search(ContractSearchViewModel model)
-        {
-            var contracts = await _apiService.GetContracts();
-
-            model.Results = contracts.Where(c =>
-                (!model.StartDate.HasValue || c.StartDate >= model.StartDate) &&
-                (!model.EndDate.HasValue || c.EndDate <= model.EndDate) &&
-             (!model.Status.HasValue || c.Status == model.Status)
-            ).ToList();
-
-            return View(model);
-        }
-
-        // GET: Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Create (API)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Contract contract, IFormFile signedAgreement)
-        {
-            ModelState.Remove("SignedAgreementPath");
-
-            if (signedAgreement != null && signedAgreement.Length > 0)
-            {
-                if (!_fileService.IsValidPdf(signedAgreement))
-                {
-                    ModelState.AddModelError("", "Only PDF files allowed.");
-                    return View(contract);
-                }
-
-                contract.SignedAgreementPath =
-                    await _fileService.SavePdfAsync(signedAgreement, "contracts");
-            }
-
-            if (!ModelState.IsValid)
-                return View(contract);
-
-            await _apiService.CreateContract(contract);
-
-            TempData["Success"] = "Contract created successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Edit
-        public async Task<IActionResult> Edit(int id)
-        {
-            var contract = (await _apiService.GetContracts())
-                .FirstOrDefault(c => c.ContractId == id);
-
-            if (contract == null) return NotFound();
-
-            return View(contract);
-        }
-
-        // POST: Edit
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Contract contract, IFormFile signedAgreement)
-        {
-            if (id != contract.ContractId)
-                return BadRequest();
-
-            ModelState.Remove("SignedAgreementPath");
-
-            if (signedAgreement != null && signedAgreement.Length > 0)
-            {
-                if (!_fileService.IsValidPdf(signedAgreement))
-                {
-                    ModelState.AddModelError("", "Only PDF files allowed.");
-                    return View(contract);
-                }
-
-                contract.SignedAgreementPath =
-                    await _fileService.SavePdfAsync(signedAgreement, "contracts");
-            }
-
-            if (!ModelState.IsValid)
-                return View(contract);
-
-            await _apiService.UpdateContract(contract);
-
-            TempData["Success"] = "Contract updated successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Delete
-        public async Task<IActionResult> Delete(int id)
-        {
-            var contract = (await _apiService.GetContracts())
-                .FirstOrDefault(c => c.ContractId == id);
-
-            if (contract == null) return NotFound();
-
-            return View(contract);
-        }
-
-        // POST: Delete
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            await _apiService.DeleteContract(id);
-
-            TempData["Success"] = "Contract deleted.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Download file (unchanged)
-        public async Task<IActionResult> DownloadAgreement(int id)
-        {
-            var contract = (await _apiService.GetContracts())
-                .FirstOrDefault(c => c.ContractId == id);
-
-            if (contract == null || string.IsNullOrEmpty(contract.SignedAgreementPath))
+            if (contract == null)
                 return NotFound();
 
-            var filePath = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "wwwroot",
-                contract.SignedAgreementPath.TrimStart('/')
-                    .Replace('/', Path.DirectorySeparatorChar));
+            return Ok(contract);
+        }
 
-            if (!System.IO.File.Exists(filePath))
+        // POST: api/contracts
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Contract contract)
+        {
+            var result = await _service.CreateContract(contract);
+
+            return CreatedAtAction(
+                nameof(Get),
+                new { id = result.ContractId },
+                result);
+        }
+
+        // PATCH: api/contracts/5/status
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(
+            int id,
+            [FromBody] ContractStatus status)
+        {
+            var updated = await _service.UpdateStatus(id, status);
+
+            if (!updated)
                 return NotFound();
 
-            return PhysicalFile(filePath, "application/pdf",
-                Path.GetFileName(filePath));
+            return Ok(new
+            {
+                Message = "Contract status updated successfully."
+            });
         }
     }
 }

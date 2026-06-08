@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace TechMoveCRM.Models
+namespace TechMoveCRM.API.Models
 {
     public class Client
     {

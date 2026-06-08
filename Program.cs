@@ -1,56 +1,58 @@
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using TechMoveCRM.Data;
-using TechMoveCRM.Services;
-using TechMoveCRM.MVC.Services; // <-- ADD THIS (ApiService namespace)
+using TechMoveCRM.API.Data;
+using TechMoveCRM.API.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add MVC
-builder.Services.AddControllersWithViews();
-
-// Register DbContext with SQL Server
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Register HttpClient for Currency API
-builder.Services.AddHttpClient();
-
-// ? STEP 9: Register ApiService (MVC ? API communication)
-builder.Services.AddHttpClient<ApiService>(client =>
+namespace TechMoveCRM.API
 {
-    client.BaseAddress = new Uri("https://localhost:7001/");
-});
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-// Register our custom services (Repository pattern from Part 1)
-builder.Services.AddScoped<IClientRepository, ClientRepository>();
-builder.Services.AddScoped<IContractRepository, ContractRepository>();
-builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
-builder.Services.AddScoped<ICurrencyService, CurrencyService>();
-builder.Services.AddScoped<IFileService, FileService>();
-builder.Services.AddScoped<IContractWorkflowService, ContractWorkflowService>();
+            // Add services to the container.
+            builder.Services.AddControllers();
 
-var app = builder.Build();
+            // Swagger/OpenAPI
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
-// Configure middleware
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+            // Database Context
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Dependency Injection
+            builder.Services.AddScoped<IContractService, ContractService>();
+
+            // JWT Authentication
+            builder.Services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = "https://localhost";
+                    options.Audience = "TechMoveCRM.API";
+                });
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-
-// ? FIX: Create uploads folder BEFORE app.Run()
-var uploadsPath = Path.Combine(app.Environment.WebRootPath, "uploads", "contracts");
-Directory.CreateDirectory(uploadsPath);
-
-// Run app (ONLY ONCE)
-app.Run();
