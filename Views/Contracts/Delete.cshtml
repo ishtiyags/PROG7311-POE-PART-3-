@@ -1,0 +1,160 @@
+﻿@model TechMoveCRM.Models.Contract
+
+@{
+    ViewData["Title"] = "Delete Contract";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<div class="container tm-page">
+
+    <div class="tm-warn-card">
+        <div class="tm-warn-icon">⚠</div>
+        <h1 class="tm-page-title">Delete Contract?</h1>
+        <p class="tm-warn-sub">
+            This will permanently delete the contract for
+            <strong>@Model.Client?.Name</strong> (@Model.ServiceLevel)
+            and all associated service requests. This cannot be undone.
+        </p>
+
+        <div class="tm-detail-grid">
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Client</span>
+                <span class="tm-detail-value">@Model.Client?.Name</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Status</span>
+                <span class="tm-detail-value">@Model.Status</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Start Date</span>
+                <span class="tm-detail-value">@Model.StartDate.ToShortDateString()</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">End Date</span>
+                <span class="tm-detail-value">@Model.EndDate.ToShortDateString()</span>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ContractId" />
+            <div class="tm-form-footer">
+                <a asp-action="Index" class="tm-btn tm-btn--ghost">Cancel — Keep Contract</a>
+                <button type="submit" class="tm-btn tm-btn--danger">Yes, Delete Permanently</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    body {
+        background: #0d0f14;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .tm-page {
+        padding: 2.5rem 1rem;
+        max-width: 640px;
+    }
+
+    .tm-warn-card {
+        background: #141720;
+        border: 1px solid rgba(239,68,68,0.25);
+        border-radius: 16px;
+        padding: 2.5rem;
+        text-align: center;
+    }
+
+    .tm-warn-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tm-page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0 0 0.75rem;
+        color: #f87171;
+    }
+
+    .tm-warn-sub {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1.75rem;
+    }
+
+    .tm-detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        text-align: left;
+        background: rgba(255,255,255,0.03);
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .tm-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .tm-detail-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+    }
+
+    .tm-detail-value {
+        font-size: 0.9rem;
+        color: #e8eaf0;
+    }
+
+    .tm-form-footer {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .tm-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .tm-btn--ghost {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .tm-btn--ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: #e8eaf0;
+        }
+
+    .tm-btn--danger {
+        background: rgba(239,68,68,0.15);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.3);
+    }
+
+        .tm-btn--danger:hover {
+            background: rgba(239,68,68,0.28);
+            color: #fca5a5;
+        }
+</style>

@@ -1,0 +1,246 @@
+﻿@model IEnumerable<TechMoveCRM.Models.Client>
+
+@{
+    ViewData["Title"] = "Clients";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<div class="container tm-page">
+
+    <div class="tm-page-header">
+        <div>
+            <h1 class="tm-page-title">Clients</h1>
+            <p class="tm-page-sub">All registered clients in the system</p>
+        </div>
+        <a asp-action="Create" class="tm-btn tm-btn--primary">+ Add Client</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="tm-empty">
+            <p>No clients found. <a asp-action="Create">Add the first one.</a></p>
+        </div>
+    }
+    else
+    {
+        <div class="tm-table-wrap">
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Contact Details</th>
+                        <th>Region</th>
+                        <th>Contracts</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var client in Model)
+                    {
+                        <tr>
+                            <td class="tm-name-cell">@client.Name</td>
+                            <td>@client.ContactDetails</td>
+                            <td>
+                                <span class="tm-region">@client.Region</span>
+                            </td>
+                            <td>
+                                <span class="tm-count">
+                                    @(client.Contracts?.Count ?? 0)
+                                </span>
+                            </td>
+                            <td>
+                                <div class="tm-row-actions">
+                                    <a asp-action="Details" asp-route-id="@client.ClientId"
+                                       class="tm-btn tm-btn--xs tm-btn--ghost">View</a>
+                                    <a asp-action="Edit" asp-route-id="@client.ClientId"
+                                       class="tm-btn tm-btn--xs tm-btn--ghost">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@client.ClientId"
+                                       class="tm-btn tm-btn--xs tm-btn--danger">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    body {
+        background: #0d0f14;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .tm-page {
+        padding: 2.5rem 1rem;
+    }
+
+    .tm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tm-page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: #e8eaf0;
+    }
+
+    .tm-page-sub {
+        color: #6b7280;
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+    }
+
+    .tm-empty {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 12px;
+        padding: 3rem;
+        text-align: center;
+        color: #6b7280;
+    }
+
+        .tm-empty a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+    .tm-table-wrap {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .tm-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+        .tm-table thead tr {
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .tm-table th {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7280;
+        }
+
+        .tm-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #cbd5e1;
+            vertical-align: middle;
+        }
+
+        .tm-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tm-table tbody tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+    .tm-name-cell {
+        font-weight: 500;
+        color: #e8eaf0;
+    }
+
+    .tm-region {
+        display: inline-flex;
+        padding: 0.2rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        background: rgba(6,182,212,0.12);
+        color: #22d3ee;
+        border: 1px solid rgba(6,182,212,0.25);
+    }
+
+    .tm-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(59,130,246,0.12);
+        color: #60a5fa;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid rgba(59,130,246,0.2);
+    }
+
+    .tm-row-actions {
+        display: flex;
+        gap: 0.35rem;
+    }
+
+    .tm-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45rem 1rem;
+        border-radius: 8px;
+        font-size: 0.825rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .tm-btn--xs {
+        padding: 0.3rem 0.65rem;
+        font-size: 0.775rem;
+    }
+
+    .tm-btn--primary {
+        background: rgba(59,130,246,0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.3);
+    }
+
+        .tm-btn--primary:hover {
+            background: rgba(59,130,246,0.28);
+            color: #93c5fd;
+        }
+
+    .tm-btn--ghost {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .tm-btn--ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: #e8eaf0;
+        }
+
+    .tm-btn--danger {
+        background: rgba(239,68,68,0.12);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.25);
+    }
+
+        .tm-btn--danger:hover {
+            background: rgba(239,68,68,0.22);
+            color: #fca5a5;
+        }
+</style>

@@ -1,0 +1,276 @@
+﻿@model TechMoveCRM.Models.ServiceRequest
+
+@{
+    ViewData["Title"] = "Service Request Details";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<div class="container tm-page">
+
+    <div class="tm-page-header">
+        <div>
+            <h1 class="tm-page-title">Service Request #@Model.ServiceRequestId</h1>
+            <p class="tm-page-sub">
+                Contract: @Model.Contract?.ServiceLevel
+                — @Model.Contract?.Client?.Name
+            </p>
+        </div>
+        <a asp-controller="Contracts" asp-action="Details"
+           asp-route-id="@Model.ContractId" class="tm-btn tm-btn--ghost">
+            ← Back to Contract
+        </a>
+    </div>
+
+    <div class="tm-detail-card">
+        <div class="tm-detail-grid">
+            <div class="tm-detail-item tm-detail-item--full">
+                <span class="tm-detail-label">Description</span>
+                <span class="tm-detail-value tm-detail-value--desc">@Model.Description</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Cost (USD)</span>
+                <span class="tm-detail-value tm-cost">$@Model.CostUSD.ToString("N2")</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Cost (ZAR)</span>
+                <span class="tm-detail-value tm-cost tm-cost--zar">R @Model.CostZAR.ToString("N2")</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Status</span>
+                <span class="tm-status tm-status--@Model.Status.ToString().ToLower()">
+                    @Model.Status
+                </span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Created</span>
+                <span class="tm-detail-value">@Model.CreatedDate.ToString("dd MMM yyyy, HH:mm")</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Linked Contract</span>
+                <a asp-controller="Contracts" asp-action="Details"
+                   asp-route-id="@Model.ContractId" class="tm-link">
+                    View Contract →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion info box -->
+    <div class="tm-conversion-box">
+        <span class="tm-conversion-label">Exchange rate applied at creation</span>
+        @if (Model.CostUSD > 0 && Model.CostZAR > 0)
+        {
+            var impliedRate = Math.Round(Model.CostZAR / Model.CostUSD, 4);
+            <span class="tm-conversion-rate">
+                1 USD = R @impliedRate.ToString("N4") ZAR
+                (implied from saved amounts)
+            </span>
+        }
+    </div>
+
+    <div class="tm-action-row">
+        <a asp-controller="Contracts" asp-action="Details"
+           asp-route-id="@Model.ContractId" class="tm-btn tm-btn--ghost">
+            ← Back to Contract
+        </a>
+        <a asp-action="Delete" asp-route-id="@Model.ServiceRequestId"
+           class="tm-btn tm-btn--danger">Delete Request</a>
+    </div>
+</div>
+
+<style>
+    body {
+        background: #0d0f14;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .tm-page {
+        padding: 2.5rem 1rem;
+        max-width: 800px;
+    }
+
+    .tm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tm-page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: #e8eaf0;
+    }
+
+    .tm-page-sub {
+        color: #6b7280;
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+    }
+
+    .tm-detail-card {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        padding: 1.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .tm-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .tm-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .tm-detail-item--full {
+        grid-column: 1 / -1;
+    }
+
+    .tm-detail-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .tm-detail-value {
+        font-size: 0.95rem;
+        color: #e8eaf0;
+    }
+
+    .tm-detail-value--desc {
+        line-height: 1.6;
+        color: #cbd5e1;
+    }
+
+    .tm-cost {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #e8eaf0;
+    }
+
+    .tm-cost--zar {
+        color: #34d399;
+    }
+
+    .tm-status {
+        display: inline-flex;
+        padding: 0.25rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        width: fit-content;
+    }
+
+    .tm-status--open {
+        background: rgba(59,130,246,0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.25);
+    }
+
+    .tm-status--inprogress {
+        background: rgba(139,92,246,0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(139,92,246,0.25);
+    }
+
+    .tm-status--resolved {
+        background: rgba(16,185,129,0.15);
+        color: #34d399;
+        border: 1px solid rgba(16,185,129,0.25);
+    }
+
+    .tm-status--closed {
+        background: rgba(100,116,139,0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100,116,139,0.25);
+    }
+
+    .tm-link {
+        color: #60a5fa;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+        .tm-link:hover {
+            color: #93c5fd;
+        }
+
+    .tm-conversion-box {
+        background: rgba(139,92,246,0.08);
+        border: 1px solid rgba(139,92,246,0.2);
+        border-radius: 10px;
+        padding: 0.85rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.825rem;
+    }
+
+    .tm-conversion-label {
+        color: #6b7280;
+    }
+
+    .tm-conversion-rate {
+        color: #a78bfa;
+        font-weight: 500;
+    }
+
+    .tm-action-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .tm-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .tm-btn--ghost {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .tm-btn--ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: #e8eaf0;
+        }
+
+    .tm-btn--danger {
+        background: rgba(239,68,68,0.12);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.25);
+    }
+
+        .tm-btn--danger:hover {
+            background: rgba(239,68,68,0.22);
+            color: #fca5a5;
+        }
+</style>

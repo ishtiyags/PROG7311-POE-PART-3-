@@ -1,0 +1,239 @@
+﻿@model TechMoveCRM.Models.Contract
+
+@{
+    ViewData["Title"] = "Edit Contract";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<div class="container tm-page">
+
+    <div class="tm-page-header">
+        <div>
+            <h1 class="tm-page-title">Edit Contract</h1>
+            <p class="tm-page-sub">Contract #@Model.ContractId — @Model.Client?.Name</p>
+        </div>
+        <a asp-action="Index" class="tm-btn tm-btn--ghost">← Back to Contracts</a>
+    </div>
+
+    <div class="tm-form-card">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ContractId" />
+            <input type="hidden" asp-for="SignedAgreementPath" />
+
+            <div class="tm-form-group">
+                <label asp-for="ClientId" class="tm-label">Client</label>
+                <select asp-for="ClientId" class="tm-select" asp-items="ViewBag.Clients"></select>
+                <span asp-validation-for="ClientId" class="tm-error"></span>
+            </div>
+
+            <div class="tm-form-row">
+                <div class="tm-form-group">
+                    <label asp-for="StartDate" class="tm-label">Start Date</label>
+                    <input asp-for="StartDate" class="tm-input" type="date" />
+                    <span asp-validation-for="StartDate" class="tm-error"></span>
+                </div>
+                <div class="tm-form-group">
+                    <label asp-for="EndDate" class="tm-label">End Date</label>
+                    <input asp-for="EndDate" class="tm-input" type="date" />
+                    <span asp-validation-for="EndDate" class="tm-error"></span>
+                </div>
+            </div>
+
+            <div class="tm-form-row">
+                <div class="tm-form-group">
+                    <label asp-for="Status" class="tm-label">Status</label>
+                    <select asp-for="Status" class="tm-select"
+                            asp-items="Html.GetEnumSelectList<TechMoveCRM.Models.ContractStatus>()">
+                    </select>
+                    <span asp-validation-for="Status" class="tm-error"></span>
+                </div>
+                <div class="tm-form-group">
+                    <label asp-for="ServiceLevel" class="tm-label">Service Level</label>
+                    <input asp-for="ServiceLevel" class="tm-input" />
+                    <span asp-validation-for="ServiceLevel" class="tm-error"></span>
+                </div>
+            </div>
+
+            <div class="tm-form-group">
+                <label class="tm-label">Replace Signed Agreement (PDF only — optional)</label>
+                @if (!string.IsNullOrEmpty(Model.SignedAgreementPath))
+                {
+                    <p class="tm-hint">
+                        Current file: <a asp-action="DownloadAgreement"
+                                         asp-route-id="@Model.ContractId"
+                                         class="tm-link">Download existing PDF</a>
+                    </p>
+                }
+                <input type="file" name="signedAgreement" class="tm-input tm-file-input" accept=".pdf" />
+                <span class="tm-hint">Leave blank to keep the existing file.</span>
+            </div>
+
+            <div class="tm-form-footer">
+                <a asp-action="Index" class="tm-btn tm-btn--ghost">Cancel</a>
+                <button type="submit" class="tm-btn tm-btn--primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    body {
+        background: #0d0f14;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .tm-page {
+        padding: 2.5rem 1rem;
+        max-width: 760px;
+    }
+
+    .tm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tm-page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: #e8eaf0;
+    }
+
+    .tm-page-sub {
+        color: #6b7280;
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+    }
+
+    .tm-form-card {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .tm-form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+
+    @@media (max-width: 580px) {
+        .tm-form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .tm-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .tm-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .tm-input, .tm-select {
+        background: #0d0f14;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        transition: border-color 0.2s;
+        width: 100%;
+    }
+
+        .tm-input:focus, .tm-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+
+    .tm-file-input {
+        cursor: pointer;
+    }
+
+    .tm-hint {
+        font-size: 0.775rem;
+        color: #4b5563;
+        margin: 0;
+    }
+
+    .tm-error {
+        font-size: 0.8rem;
+        color: #f87171;
+    }
+
+    .tm-link {
+        color: #60a5fa;
+        text-decoration: none;
+    }
+
+    .tm-form-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        margin-top: 0.5rem;
+    }
+
+    .tm-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .tm-btn--primary {
+        background: rgba(59,130,246,0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.3);
+    }
+
+        .tm-btn--primary:hover {
+            background: rgba(59,130,246,0.28);
+            color: #93c5fd;
+        }
+
+    .tm-btn--ghost {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .tm-btn--ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: #e8eaf0;
+        }
+</style>

@@ -1,0 +1,306 @@
+﻿@model TechMoveCRM.ViewModels.ServiceRequestCreateViewModel
+
+@{
+    ViewData["Title"] = "New Service Request";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<div class="container tm-page">
+
+    <div class="tm-page-header">
+        <div>
+            <h1 class="tm-page-title">New Service Request</h1>
+            <p class="tm-page-sub">
+                Contract: @Model.Contract?.ServiceLevel
+                — @Model.Contract?.Client?.Name
+            </p>
+        </div>
+        <a asp-controller="Contracts" asp-action="Details"
+           asp-route-id="@Model.ContractId" class="tm-btn tm-btn--ghost">
+            ← Back to Contract
+        </a>
+    </div>
+
+    <!-- Rate Info Banner -->
+    <div class="tm-rate-banner">
+        <span class="tm-rate-icon">💱</span>
+        <span>
+            Live Exchange Rate:
+            <strong>1 USD = R @Model.CurrentUsdToZarRate.ToString("N2") ZAR</strong>
+        </span>
+        <span class="tm-rate-note">Cost will be auto-calculated as you type</span>
+    </div>
+
+    <div class="tm-form-card">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ContractId" />
+
+            <div class="tm-form-group">
+                <label asp-for="Description" class="tm-label">Description</label>
+                <textarea asp-for="Description" class="tm-input tm-textarea"
+                          rows="4" placeholder="Describe the service request in detail..."></textarea>
+                <span asp-validation-for="Description" class="tm-error"></span>
+            </div>
+
+            <div class="tm-form-row">
+                <div class="tm-form-group">
+                    <label asp-for="CostUSD" class="tm-label">Cost (USD $)</label>
+                    <div class="tm-input-wrap">
+                        <span class="tm-input-prefix">$</span>
+                        <input asp-for="CostUSD" class="tm-input tm-input--prefixed"
+                               id="costUSD" type="number" step="0.01" min="0.01"
+                               placeholder="0.00" />
+                    </div>
+                    <span asp-validation-for="CostUSD" class="tm-error"></span>
+                </div>
+
+                <div class="tm-form-group">
+                    <label class="tm-label">Estimated Cost (ZAR R)</label>
+                    <div class="tm-input-wrap">
+                        <span class="tm-input-prefix">R</span>
+                        <input id="costZAR" class="tm-input tm-input--prefixed tm-input--readonly"
+                               readonly placeholder="Auto-calculated..." />
+                    </div>
+                    <span class="tm-hint">Calculated from the live rate above</span>
+                </div>
+            </div>
+
+            <div class="tm-form-footer">
+                <a asp-controller="Contracts" asp-action="Details"
+                   asp-route-id="@Model.ContractId" class="tm-btn tm-btn--ghost">Cancel</a>
+                <button type="submit" class="tm-btn tm-btn--primary">Submit Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.getElementById('costUSD').addEventListener('input', async function () {
+            const usdVal = parseFloat(this.value);
+            const zarField = document.getElementById('costZAR');
+            if (isNaN(usdVal) || usdVal <= 0) {
+                zarField.value = '';
+                return;
+            }
+            try {
+                const res = await fetch('/ServiceRequests/GetZarAmount?usdAmount=' + usdVal);
+                const data = await res.json();
+                zarField.value = data.zarAmount.toFixed(2);
+            } catch {
+                zarField.value = 'Unavailable';
+            }
+        });
+    </script>
+}
+
+<style>
+    body {
+        background: #0d0f14;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .tm-page {
+        padding: 2.5rem 1rem;
+        max-width: 720px;
+    }
+
+    .tm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .tm-page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: #e8eaf0;
+    }
+
+    .tm-page-sub {
+        color: #6b7280;
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+    }
+
+    .tm-rate-banner {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        background: rgba(139,92,246,0.1);
+        border: 1px solid rgba(139,92,246,0.25);
+        border-radius: 10px;
+        padding: 0.85rem 1.25rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        color: #c4b5fd;
+    }
+
+    .tm-rate-icon {
+        font-size: 1.1rem;
+    }
+
+    .tm-rate-banner strong {
+        color: #a78bfa;
+    }
+
+    .tm-rate-note {
+        color: #6b7280;
+        margin-left: auto;
+        font-size: 0.8rem;
+    }
+
+    .tm-form-card {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .tm-form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+
+    @@media (max-width: 580px) {
+        .tm-form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .tm-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .tm-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .tm-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .tm-input-prefix {
+        position: absolute;
+        left: 0.85rem;
+        color: #6b7280;
+        font-size: 0.9rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .tm-input, .tm-textarea {
+        background: #0d0f14;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 0.65rem 0.85rem;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        transition: border-color 0.2s;
+        width: 100%;
+    }
+
+    .tm-input--prefixed {
+        padding-left: 2rem;
+    }
+
+    .tm-input--readonly {
+        background: rgba(255,255,255,0.03);
+        color: #6b7280;
+        cursor: default;
+    }
+
+    .tm-input:focus, .tm-textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+
+    .tm-input::placeholder, .tm-textarea::placeholder {
+        color: #374151;
+    }
+
+    .tm-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .tm-hint {
+        font-size: 0.775rem;
+        color: #4b5563;
+    }
+
+    .tm-error {
+        font-size: 0.8rem;
+        color: #f87171;
+    }
+
+    .tm-form-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        margin-top: 0.25rem;
+    }
+
+    .tm-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .tm-btn--primary {
+        background: rgba(59,130,246,0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.3);
+    }
+
+        .tm-btn--primary:hover {
+            background: rgba(59,130,246,0.28);
+            color: #93c5fd;
+        }
+
+    .tm-btn--ghost {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .tm-btn--ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: #e8eaf0;
+        }
+</style>

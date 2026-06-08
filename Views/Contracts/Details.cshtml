@@ -1,0 +1,414 @@
+﻿@model TechMoveCRM.Models.Contract
+
+@{
+    ViewData["Title"] = "Contract Details";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<div class="container tm-page">
+
+    <div class="tm-page-header">
+        <div>
+            <h1 class="tm-page-title">Contract Details</h1>
+            <p class="tm-page-sub">@Model.Client?.Name — @Model.ServiceLevel</p>
+        </div>
+        <div class="tm-header-actions">
+            <a asp-action="Edit" asp-route-id="@Model.ContractId" class="tm-btn tm-btn--ghost">Edit</a>
+            <a asp-action="Index" class="tm-btn tm-btn--ghost">← Back</a>
+        </div>
+    </div>
+
+    <!-- Contract Info Card -->
+    <div class="tm-detail-card">
+        <div class="tm-detail-grid">
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Client</span>
+                <span class="tm-detail-value">@Model.Client?.Name</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Service Level</span>
+                <span class="tm-detail-value">@Model.ServiceLevel</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Start Date</span>
+                <span class="tm-detail-value">@Model.StartDate.ToLongDateString()</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">End Date</span>
+                <span class="tm-detail-value">@Model.EndDate.ToLongDateString()</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Status</span>
+                <span class="tm-status tm-status--@Model.Status.ToString().ToLower()">@Model.Status</span>
+            </div>
+            <div class="tm-detail-item">
+                <span class="tm-detail-label">Signed Agreement</span>
+                @if (!string.IsNullOrEmpty(Model.SignedAgreementPath))
+                {
+                    <a asp-action="DownloadAgreement" asp-route-id="@Model.ContractId" class="tm-link">
+                        📄 Download PDF
+                    </a>
+                }
+                else
+                {
+                    <span class="tm-muted">No file uploaded</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Requests Section -->
+    <div class="tm-section-header">
+        <h2 class="tm-section-title">Service Requests</h2>
+        @if (Model.Status != TechMoveCRM.Models.ContractStatus.Expired &&
+        Model.Status != TechMoveCRM.Models.ContractStatus.OnHold)
+        {
+            <a asp-controller="ServiceRequests" asp-action="Create"
+               asp-route-contractId="@Model.ContractId"
+               class="tm-btn tm-btn--primary">+ New Request</a>
+        }
+        else
+        {
+            <span class="tm-badge tm-badge--warning">
+                ⚠ Requests blocked — contract is @Model.Status
+            </span>
+        }
+    </div>
+
+    @if (Model.ServiceRequests == null || !Model.ServiceRequests.Any())
+    {
+        <div class="tm-empty">
+            <p>No service requests yet for this contract.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tm-table-wrap">
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Cost (USD)</th>
+                        <th>Cost (ZAR)</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var req in Model.ServiceRequests)
+                    {
+                        <tr>
+                            <td>@req.Description</td>
+                            <td>$@req.CostUSD.ToString("N2")</td>
+                            <td>R @req.CostZAR.ToString("N2")</td>
+                            <td>
+                                <span class="tm-status tm-status--@req.Status.ToString().ToLower()">
+                                    @req.Status
+                                </span>
+                            </td>
+                            <td>@req.CreatedDate.ToShortDateString()</td>
+                            <td>
+                                <div class="tm-row-actions">
+                                    <a asp-controller="ServiceRequests" asp-action="Details"
+                                       asp-route-id="@req.ServiceRequestId"
+                                       class="tm-btn tm-btn--xs tm-btn--ghost">View</a>
+                                    <a asp-controller="ServiceRequests" asp-action="Delete"
+                                       asp-route-id="@req.ServiceRequestId"
+                                       class="tm-btn tm-btn--xs tm-btn--danger">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    body {
+        background: #0d0f14;
+        color: #e8eaf0;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .tm-page {
+        padding: 2.5rem 1rem;
+    }
+
+    .tm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tm-page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: #e8eaf0;
+    }
+
+    .tm-page-sub {
+        color: #6b7280;
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+    }
+
+    .tm-header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .tm-detail-card {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .tm-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .tm-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .tm-detail-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .tm-detail-value {
+        font-size: 0.95rem;
+        color: #e8eaf0;
+    }
+
+    .tm-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .tm-section-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        color: #e8eaf0;
+    }
+
+    .tm-empty {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .tm-table-wrap {
+        background: #141720;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .tm-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+        .tm-table thead tr {
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .tm-table th {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7280;
+        }
+
+        .tm-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #cbd5e1;
+            vertical-align: middle;
+        }
+
+        .tm-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tm-table tbody tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+    .tm-status {
+        display: inline-flex;
+        padding: 0.25rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .tm-status--active {
+        background: rgba(16,185,129,0.15);
+        color: #34d399;
+        border: 1px solid rgba(16,185,129,0.25);
+    }
+
+    .tm-status--draft {
+        background: rgba(100,116,139,0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100,116,139,0.25);
+    }
+
+    .tm-status--expired {
+        background: rgba(239,68,68,0.15);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.25);
+    }
+
+    .tm-status--onhold {
+        background: rgba(245,158,11,0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    .tm-status--open {
+        background: rgba(59,130,246,0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.25);
+    }
+
+    .tm-status--inprogress {
+        background: rgba(139,92,246,0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(139,92,246,0.25);
+    }
+
+    .tm-status--resolved {
+        background: rgba(16,185,129,0.15);
+        color: #34d399;
+        border: 1px solid rgba(16,185,129,0.25);
+    }
+
+    .tm-status--closed {
+        background: rgba(100,116,139,0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100,116,139,0.25);
+    }
+
+    .tm-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .tm-badge--warning {
+        background: rgba(245,158,11,0.12);
+        color: #fbbf24;
+        border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    .tm-link {
+        color: #60a5fa;
+        text-decoration: none;
+        font-size: 0.825rem;
+    }
+
+        .tm-link:hover {
+            color: #93c5fd;
+        }
+
+    .tm-muted {
+        color: #4b5563;
+        font-size: 0.825rem;
+    }
+
+    .tm-row-actions {
+        display: flex;
+        gap: 0.35rem;
+    }
+
+    .tm-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45rem 1rem;
+        border-radius: 8px;
+        font-size: 0.825rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .tm-btn--xs {
+        padding: 0.3rem 0.65rem;
+        font-size: 0.775rem;
+    }
+
+    .tm-btn--primary {
+        background: rgba(59,130,246,0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.3);
+    }
+
+        .tm-btn--primary:hover {
+            background: rgba(59,130,246,0.28);
+            color: #93c5fd;
+        }
+
+    .tm-btn--ghost {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .tm-btn--ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: #e8eaf0;
+        }
+
+    .tm-btn--danger {
+        background: rgba(239,68,68,0.12);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.25);
+    }
+
+        .tm-btn--danger:hover {
+            background: rgba(239,68,68,0.22);
+            color: #fca5a5;
+        }
+</style>
