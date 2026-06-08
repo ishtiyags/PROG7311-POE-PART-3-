@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TechMoveCRM.Models
+namespace TechMoveCRM.API.Models
 {
     public enum ServiceRequestStatus
     {

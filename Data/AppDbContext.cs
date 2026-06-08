@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TechMoveCRM.Models;
+using TechMoveCRM.API.Models;
 
-namespace TechMoveCRM.Data
+namespace TechMoveCRM.API.Data
 {
     public class AppDbContext : DbContext
     {
